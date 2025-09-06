@@ -1,8 +1,15 @@
-# alcohol_counter
+# アルコールカウンター
 
-A new Flutter project.
+飲酒量を記録・管理するFlutterアプリケーションです。
 
-## Getting Started
+## 機能
+
+- 飲み会中の飲酒量を簡単に記録
+  - シンプルで使いやすいインターフェース
+  - OCRでの入力に対応
+- あらかじめ設定した飲酒目安に応じて適切にアラート
+
+## 開発環境
 
 This project is a starting point for a Flutter application.
 
