@@ -85,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Slider(
               value: _dailyLimit,
               min: 0,
-              max: 5,
+              max: 100,
               divisions: 10,
               label: _dailyLimit.toString(),
               onChanged: (value) {

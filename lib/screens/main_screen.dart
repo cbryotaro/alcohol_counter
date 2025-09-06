@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'input_screen.dart';
 import 'settings_screen.dart';
 
@@ -11,6 +12,22 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   double _totalAlcoholGrams = 0.0;
+  double? _dailyLimit;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDailyLimit();
+  }
+
+  Future<void> _loadDailyLimit() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _dailyLimit = prefs.getDouble('dailyLimit') ?? 3.0;
+      _isLoading = false;
+    });
+  }
 
   void _handleRecordSaved(double alcoholGrams) {
     setState(() {
@@ -121,6 +138,50 @@ class _MainScreenState extends State<MainScreen> {
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
               ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        LinearProgressIndicator(
+                          value: _dailyLimit != null && _dailyLimit! > 0
+                              ? (_totalAlcoholGrams / 20.0) / _dailyLimit!
+                              : 0.0,
+                          minHeight: 10,
+                          backgroundColor: Colors.grey[200],
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            _dailyLimit != null &&
+                                    (_totalAlcoholGrams / 20.0) >= _dailyLimit!
+                                ? Colors.red
+                                : Colors.green,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${(_totalAlcoholGrams / 20.0).toStringAsFixed(1)}単位',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              '目標: ${_dailyLimit?.toStringAsFixed(1) ?? '2.0'}単位',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
             ),
             const SizedBox(height: 24),
             if (_totalAlcoholGrams > 0) ...[
