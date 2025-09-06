@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class InputScreen extends StatefulWidget {
-  const InputScreen({super.key});
+  final Function(double) onRecordSaved;
+  
+  const InputScreen({
+    super.key,
+    required this.onRecordSaved,
+  });
 
   @override
   State<InputScreen> createState() => _InputScreenState();
@@ -12,32 +17,112 @@ class _InputScreenState extends State<InputScreen> {
   String _selectedAlcoholType = '生ビール';
   String _selectedSize = '中ジョッキ';
 
+  void _showSizeSelectionModal(Map<String, dynamic> alcoholType) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '${alcoholType['name']}のサイズを選択',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ...alcoholType['sizes'].map<Widget>((size) {
+                return ListTile(
+                  title: Text(size),
+                  onTap: () {
+                    setState(() {
+                      _selectedSize = size;
+                    });
+                    Navigator.pop(context); // モーダルを閉じる
+                    _saveRecord(); // 記録を保存
+                  },
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // アルコール量を計算（純アルコールの量をグラムで返す）
+  double _calculateAlcoholGrams(Map<String, dynamic> alcoholType, String size) {
+    final double alcoholContent = alcoholType['alcoholContent'];
+    final int volumeInMl = alcoholType['volumes'][size];
+    // アルコールの比重を0.8として計算
+    return volumeInMl * alcoholContent * 0.8;
+  }
+
+  void _saveRecord() {
+    // 選択された種類のアルコール情報を取得
+    final alcoholType = _alcoholTypes.firstWhere((type) => type['name'] == _selectedAlcoholType);
+    // アルコール量を計算（グラム）
+    final alcoholGrams = _calculateAlcoholGrams(alcoholType, _selectedSize);
+    // コールバックで親に通知
+    widget.onRecordSaved(alcoholGrams);
+    Navigator.pop(context);
+  }
+
   // お酒の種類の定義
   final List<Map<String, dynamic>> _alcoholTypes = [
     {
       'name': '生ビール',
       'image': 'assets/images/beer.png',
       'sizes': ['小ジョッキ', '中ジョッキ', '大ジョッキ'],
+      'alcoholContent': 0.05, // 5%
+      'volumes': {
+        '小ジョッキ': 340, // ml
+        '中ジョッキ': 500, // ml
+        '大ジョッキ': 700, // ml
+      },
     },
     {
       'name': '焼酎',
       'image': 'assets/images/shochu.png',
       'sizes': ['0.5合', '1合', '2合'],
+      'alcoholContent': 0.25, // 25%
+      'volumes': {
+        '0.5合': 90, // ml
+        '1合': 180, // ml
+        '2合': 360, // ml
+      },
     },
     {
       'name': '日本酒',
       'image': 'assets/images/sake.png',
       'sizes': ['0.5合', '1合', '2合'],
+      'alcoholContent': 0.15, // 15%
+      'volumes': {
+        '0.5合': 90, // ml
+        '1合': 180, // ml
+        '2合': 360, // ml
+      },
     },
     {
       'name': 'ワイン',
       'image': 'assets/images/wine.png',
       'sizes': ['グラス(120ml)', 'ボトル(750ml)'],
+      'alcoholContent': 0.12, // 12%
+      'volumes': {
+        'グラス(120ml)': 120, // ml
+        'ボトル(750ml)': 750, // ml
+      },
     },
     {
       'name': 'ウイスキー',
       'image': 'assets/images/whiskey.png',
       'sizes': ['シングル(30ml)', 'ダブル(60ml)'],
+      'alcoholContent': 0.40, // 40%
+      'volumes': {
+        'シングル(30ml)': 30, // ml
+        'ダブル(60ml)': 60, // ml
+      },
     },
   ];
 
@@ -87,8 +172,8 @@ class _InputScreenState extends State<InputScreen> {
                     onTap: () {
                       setState(() {
                         _selectedAlcoholType = type['name'];
-                        _selectedSize = type['sizes'][0];
                       });
+                      _showSizeSelectionModal(type);
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -115,52 +200,6 @@ class _InputScreenState extends State<InputScreen> {
                   },
                 );
               },
-            ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'サイズを選択',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: _selectedSize,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      ),
-                      items: _alcoholTypes
-                          .firstWhere((type) => type['name'] == _selectedAlcoholType)['sizes']
-                          .map<DropdownMenuItem<String>>((String size) {
-                        return DropdownMenuItem<String>(
-                          value: size,
-                          child: Text(size),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _selectedSize = newValue;
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: 飲酒量を保存する処理を実装
-                Navigator.pop(context);
-              },
-              child: const Text('記録する'),
             ),
           ],
           ),
