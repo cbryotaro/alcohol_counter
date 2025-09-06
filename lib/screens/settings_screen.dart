@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -8,13 +9,40 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  late SharedPreferences _prefs;
   bool _enableNotifications = true;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 21, minute: 0);
+  double _dailyLimit = 2.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _enableNotifications = _prefs.getBool('enableNotifications') ?? true;
+      _reminderTime = TimeOfDay(
+        hour: _prefs.getInt('reminderHour') ?? 21,
+        minute: _prefs.getInt('reminderMinute') ?? 0,
+      );
+      _dailyLimit = _prefs.getDouble('dailyLimit') ?? 2.0;
+    });
+  }
+
+  Future<void> _saveSettings() async {
+    await _prefs.setBool('enableNotifications', _enableNotifications);
+    await _prefs.setInt('reminderHour', _reminderTime.hour);
+    await _prefs.setInt('reminderMinute', _reminderTime.minute);
+    await _prefs.setDouble('dailyLimit', _dailyLimit);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar( 
         title: const Text('設定'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -31,6 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() {
                 _enableNotifications = value;
               });
+              _saveSettings();
             },
           ),
           ListTile(
@@ -46,15 +75,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   _reminderTime = newTime;
                 });
+                _saveSettings();
               }
             },
           ),
           const Divider(),
           ListTile(
+            title: const Text('1日のアルコール単位制限'),
+            subtitle: Slider(
+              value: _dailyLimit,
+              min: 0,
+              max: 5,
+              divisions: 10,
+              label: _dailyLimit.toString(),
+              onChanged: (value) {
+                setState(() {
+                  _dailyLimit = value;
+                });
+                _saveSettings();
+              },
+            ),
+            trailing: Text('${_dailyLimit.toStringAsFixed(1)}単位'),
+          ),
+          const Divider(),
+          ListTile(
             title: const Text('データを削除'),
             textColor: Colors.red,
-            onTap: () {
-              // TODO: データ削除の確認ダイアログと処理を実装
+            onTap: () async {
+              final bool? confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('確認'),
+                  content: const Text('すべてのデータを削除しますか？'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('キャンセル'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('削除'),
+                    ),
+                  ],
+                ),
+              );
+              
+              if (confirm == true) {
+                await _prefs.clear();
+                await _loadSettings();
+              }
             },
           ),
         ],
