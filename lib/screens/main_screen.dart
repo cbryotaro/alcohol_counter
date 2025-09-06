@@ -24,6 +24,39 @@ class _MainScreenState extends State<MainScreen> {
     return '$units単位';
   }
 
+  // リセット確認ダイアログを表示
+  Future<void> _showResetConfirmDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('記録をリセット'),
+          content: const Text('今日の飲酒記録をリセットしますか？\nこの操作は取り消せません。'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('キャンセル'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text(
+                'リセット',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                setState(() {
+                  _totalAlcoholGrams = 0.0;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,6 +109,17 @@ class _MainScreenState extends State<MainScreen> {
               },
               child: const Text('飲酒を記録する'),
             ),
+            if (_totalAlcoholGrams > 0) ...[
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: _showResetConfirmDialog,
+                icon: const Icon(Icons.refresh, color: Colors.red),
+                label: const Text(
+                  '記録をリセット',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ],
         ),
       ),
