@@ -18,10 +18,39 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  String _formatAlcoholAmount(double grams) {
-    // 日本の1単位は純アルコール10gとして計算
-    final units = (grams / 10).toStringAsFixed(1);
-    return '$units単位';
+  int _calculateBeerEquivalent(double alcoholGrams) {
+    // 中ジョッキ（500ml, 5%）のビールを基準に換算
+    // 中ジョッキ1杯のアルコール量 = 500 * 0.05 * 0.8 = 20g
+    const beerAlcoholGrams = 20.0;
+    return (alcoholGrams / beerAlcoholGrams).round();
+  }
+
+  Widget _buildBeerIcons(int count) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ...List.generate(
+          count > 10 ? 10 : count,
+          (index) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Icon(
+              Icons.sports_bar,
+              color: Colors.amber[600],
+              size: 32,
+            ),
+          ),
+        ),
+        if (count > 10)
+          Text(
+            '+${count - 10}',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.amber[600],
+            ),
+          ),
+      ],
+    );
   }
 
   // リセット確認ダイアログを表示
@@ -78,23 +107,34 @@ class _MainScreenState extends State<MainScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              '今日の飲酒量',
-              style: TextStyle(fontSize: 24),
-            ),
-            const SizedBox(height: 20),
             Text(
-              _formatAlcoholAmount(_totalAlcoholGrams),
-              style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+              '今日の飲酒量',
+              style: TextStyle(
+                fontSize: 24,
+                color: Colors.grey[800],
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              '純アルコール: ${_totalAlcoholGrams.toStringAsFixed(1)}g',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
+              '${_totalAlcoholGrams.toStringAsFixed(1)}g',
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(height: 24),
+            if (_totalAlcoholGrams > 0) ...[
+              const SizedBox(height: 8),
+              _buildBeerIcons(_calculateBeerEquivalent(_totalAlcoholGrams)),
+              Text(
+                '中ジョッキ${_calculateBeerEquivalent(_totalAlcoholGrams)}杯分',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber[800],
+                ),
+              ),
+            ],
             const SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
