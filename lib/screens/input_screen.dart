@@ -62,17 +62,21 @@ class _InputScreenState extends State<InputScreen> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,  // 3列に変更
-                childAspectRatio: 0.85,  // 縦長に調整
-                crossAxisSpacing: 8,  // 間隔を縮小
-                mainAxisSpacing: 8,  // 間隔を縮小
-              ),
-              itemCount: _alcoholTypes.length,
-              itemBuilder: (context, index) {
+            LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                // 画面幅が768px以上の場合は5列、それ以外は3列
+                final crossAxisCount = constraints.maxWidth >= 768 ? 5 : 3;
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: 0.85,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _alcoholTypes.length,
+                  itemBuilder: (BuildContext context, int index) {
                 final type = _alcoholTypes[index];
                 final isSelected = _selectedAlcoholType == type['name'];
                 
@@ -107,6 +111,8 @@ class _InputScreenState extends State<InputScreen> {
                       ],
                     ),
                   ),
+                );
+                  },
                 );
               },
             ),
