@@ -306,16 +306,20 @@ class _MainScreenState extends State<MainScreen> {
               ),
               ...List.generate(
                 _drinkHistory.length,
-                (index) => ListTile(
-                  leading: _getIconForDrinkType(_drinkHistory[index].type),
-                  title: Text('${_drinkHistory[index].type} (${_drinkHistory[index].size})'),
-                  subtitle: Text('アルコール量: ${_drinkHistory[index].alcoholGrams.toStringAsFixed(1)}g'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.add_circle),
-                    onPressed: () => _handleRefill(_drinkHistory[index]),
-                    tooltip: 'おかわり',
-                  ),
-                ),
+                (index) {
+                  // リストを逆順にアクセス
+                  final reverseIndex = _drinkHistory.length - 1 - index;
+                  return ListTile(
+                    leading: _getIconForDrinkType(_drinkHistory[reverseIndex].type),
+                    title: Text('${_drinkHistory[reverseIndex].type} (${_drinkHistory[reverseIndex].size})'),
+                    subtitle: Text('アルコール量: ${_drinkHistory[reverseIndex].alcoholGrams.toStringAsFixed(1)}g'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.add_circle),
+                      onPressed: () => _handleRefill(_drinkHistory[reverseIndex]),
+                      tooltip: 'おかわり',
+                    ),
+                  );
+                },
               ),
             ],
               ],
