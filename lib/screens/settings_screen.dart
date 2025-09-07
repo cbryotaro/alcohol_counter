@@ -10,8 +10,6 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late SharedPreferences _prefs;
-  bool _enableNotifications = true;
-  TimeOfDay _reminderTime = const TimeOfDay(hour: 21, minute: 0);
   double _dailyLimit = 2.0;
 
   @override
@@ -23,19 +21,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
-      _enableNotifications = _prefs.getBool('enableNotifications') ?? true;
-      _reminderTime = TimeOfDay(
-        hour: _prefs.getInt('reminderHour') ?? 21,
-        minute: _prefs.getInt('reminderMinute') ?? 0,
-      );
       _dailyLimit = _prefs.getDouble('dailyLimit') ?? 2.0;
     });
   }
 
   Future<void> _saveSettings() async {
-    await _prefs.setBool('enableNotifications', _enableNotifications);
-    await _prefs.setInt('reminderHour', _reminderTime.hour);
-    await _prefs.setInt('reminderMinute', _reminderTime.minute);
     await _prefs.setDouble('dailyLimit', _dailyLimit);
   }
 
@@ -51,37 +41,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: ListView(
         children: [
-          SwitchListTile(
-            title: const Text('通知'),
-            subtitle: const Text('毎日の記録リマインダー'),
-            value: _enableNotifications,
-            onChanged: (bool value) {
-              setState(() {
-                _enableNotifications = value;
-              });
-              _saveSettings();
-            },
-          ),
           ListTile(
-            title: const Text('リマインダー時刻'),
-            subtitle: Text('${_reminderTime.format(context)}'),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () async {
-              final TimeOfDay? newTime = await showTimePicker(
-                context: context,
-                initialTime: _reminderTime,
-              );
-              if (newTime != null) {
-                setState(() {
-                  _reminderTime = newTime;
-                });
-                _saveSettings();
-              }
-            },
-          ),
-          const Divider(),
-          ListTile(
-            title: const Text('1日の目標'),
+            title: const Text('二日酔いにならない飲酒量'),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -101,9 +62,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    '中ジョッキ ${_dailyLimit.toStringAsFixed(1)}杯まで',
+                    '生ビール中ジョッキ ${_dailyLimit.toStringAsFixed(1)}杯まで',
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: Colors.black,
                       fontSize: 14,
                     ),
                   ),
