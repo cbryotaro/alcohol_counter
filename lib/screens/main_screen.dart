@@ -93,32 +93,33 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _getIconForDrinkType(String type) {
-    IconData iconData;
-    Color? color;
-    
-    switch (type.toLowerCase()) {
-      case 'ビール':
-        iconData = Icons.sports_bar;
-        color = Colors.amber[600];
-        break;
-      case '日本酒':
-        iconData = Icons.rice_bowl;
-        color = Colors.grey[300];
-        break;
-      case 'ワイン':
-        iconData = Icons.wine_bar;
-        color = Colors.red[300];
+    String imagePath;
+    switch (type) {
+      case '生ビール':
+        imagePath = 'assets/images/beer.png';
         break;
       case '焼酎':
-        iconData = Icons.local_drink;
-        color = Colors.brown[300];
+        imagePath = 'assets/images/shochu.png';
+        break;
+      case '日本酒':
+        imagePath = 'assets/images/sake.png';
+        break;
+      case 'ワイン':
+        imagePath = 'assets/images/wine.png';
+        break;
+      case 'ウイスキー':
+        imagePath = 'assets/images/whiskey.png';
         break;
       default:
-        iconData = Icons.local_bar;
-        color = Colors.grey[400];
+        imagePath = 'assets/images/beer.png';
     }
     
-    return Icon(iconData, color: color, size: 28);
+    return Image.asset(
+      imagePath,
+      width: 28,
+      height: 28,
+      color: Colors.grey[700],
+    );
   }
 
   Widget _buildBeerIcons(int count) {
