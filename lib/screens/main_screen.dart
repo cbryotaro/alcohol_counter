@@ -390,7 +390,7 @@ class _MainScreenState extends State<MainScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '現在: ${(_totalAlcoholGrams / 20.0).toStringAsFixed(1)}杯',
+                              '現在: ビール換算${(_totalAlcoholGrams / 20.0).toStringAsFixed(1)}杯',
                               style: TextStyle(
                                 color: _dailyLimit != null &&
                                         _totalAlcoholGrams >= (_dailyLimit! * 20.0)
