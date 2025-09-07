@@ -10,7 +10,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late SharedPreferences _prefs;
-  double _dailyLimitGrams = 40.0; // デフォルト値を40g（ビール中ジョッキ2杯分）に設定
+  double _dailyLimitGrams = 120.0; // デフォルト値を120g（ビール中ジョッキ6杯分）に設定
 
   // 各お酒1杯あたりのアルコール量（g）を計算するメソッド
   double _getAlcoholGramsPerDrink(String drinkType) {
@@ -60,8 +60,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
       // 既存のデータを変換（杯数からグラム数に）
-      final oldValue = _prefs.getDouble('dailyLimit') ?? 2.0;
-      _dailyLimitGrams = _prefs.getDouble('dailyLimitGrams') ?? (oldValue * 20.0);
+      final oldValue = _prefs.getDouble('dailyLimit') ?? 6.0;  // デフォルト6杯
+      _dailyLimitGrams = _prefs.getDouble('dailyLimitGrams') ?? (oldValue * 20.0);  // 120g
     });
   }
 

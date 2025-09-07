@@ -62,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
-    final dailyLimit = prefs.getDouble('dailyLimit') ?? 3.0;
+    final dailyLimit = prefs.getDouble('dailyLimit') ?? 6.0;  // デフォルト6杯（120g）
     
     final historyJson = prefs.getString('drinkHistory') ?? '[]';
     final historyList = jsonDecode(historyJson) as List;
@@ -89,7 +89,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _loadDailyLimit() async {
     final prefs = await SharedPreferences.getInstance();
-    final dailyLimit = prefs.getDouble('dailyLimit') ?? 3.0;
+    final dailyLimit = prefs.getDouble('dailyLimit') ?? 6.0;  // デフォルト6杯（120g）
     setState(() {
       _dailyLimit = dailyLimit;
     });
