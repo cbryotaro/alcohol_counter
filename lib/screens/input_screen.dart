@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class InputScreen extends StatefulWidget {
-  final Function(double) onRecordSaved;
+  final Function(double, {String type, String size}) onRecordSaved;
   
   const InputScreen({
     super.key,
@@ -64,8 +64,12 @@ class _InputScreenState extends State<InputScreen> {
     final alcoholType = _alcoholTypes.firstWhere((type) => type['name'] == _selectedAlcoholType);
     // アルコール量を計算（グラム）
     final alcoholGrams = _calculateAlcoholGrams(alcoholType, _selectedSize);
-    // コールバックで親に通知
-    widget.onRecordSaved(alcoholGrams);
+    // コールバックで親に通知（種類とサイズの情報も含める）
+    widget.onRecordSaved(
+      alcoholGrams,
+      type: _selectedAlcoholType,
+      size: _selectedSize,
+    );
     Navigator.pop(context);
   }
 

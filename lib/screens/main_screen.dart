@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/drink_record.dart';
 import 'input_screen.dart';
 import 'settings_screen.dart';
 
@@ -14,25 +16,69 @@ class _MainScreenState extends State<MainScreen> {
   double _totalAlcoholGrams = 0.0;
   double? _dailyLimit;
   bool _isLoading = true;
+  List<DrinkRecord> _drinkHistory = [];
 
   @override
   void initState() {
     super.initState();
-    _loadDailyLimit();
+    _loadData();
   }
 
-  Future<void> _loadDailyLimit() async {
+  Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
+    final dailyLimit = prefs.getDouble('dailyLimit') ?? 3.0;
+    
+    final historyJson = prefs.getString('drinkHistory') ?? '[]';
+    final historyList = jsonDecode(historyJson) as List;
+    final history = historyList
+        .map((item) => DrinkRecord.fromJson(item as Map<String, dynamic>))
+        .toList();
+
+    final totalGrams = prefs.getDouble('totalAlcoholGrams') ?? 0.0;
+    
     setState(() {
-      _dailyLimit = prefs.getDouble('dailyLimit') ?? 3.0;
+      _dailyLimit = dailyLimit;
+      _drinkHistory = history;
+      _totalAlcoholGrams = totalGrams;
       _isLoading = false;
     });
   }
 
-  void _handleRecordSaved(double alcoholGrams) {
+  Future<void> _saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyJson = jsonEncode(_drinkHistory.map((r) => r.toJson()).toList());
+    await prefs.setString('drinkHistory', historyJson);
+    await prefs.setDouble('totalAlcoholGrams', _totalAlcoholGrams);
+  }
+
+  Future<void> _loadDailyLimit() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dailyLimit = prefs.getDouble('dailyLimit') ?? 3.0;
+    setState(() {
+      _dailyLimit = dailyLimit;
+    });
+  }
+
+  void _handleRecordSaved(double alcoholGrams, {String type = '', String size = ''}) {
     setState(() {
       _totalAlcoholGrams += alcoholGrams;
+      if (type.isNotEmpty && size.isNotEmpty) {
+        _drinkHistory.add(DrinkRecord(
+          type: type,
+          size: size,
+          alcoholGrams: alcoholGrams,
+        ));
+      }
     });
+    _saveData();
+  }
+
+  void _handleRefill(DrinkRecord record) {
+    _handleRecordSaved(
+      record.alcoholGrams,
+      type: record.type,
+      size: record.size,
+    );
   }
 
   double _calculateBeerEquivalent(double alcoholGrams) {
@@ -44,6 +90,35 @@ class _MainScreenState extends State<MainScreen> {
 
   int _calculateBeerCount(double alcoholGrams) {
     return _calculateBeerEquivalent(alcoholGrams).round();
+  }
+
+  Widget _getIconForDrinkType(String type) {
+    IconData iconData;
+    Color? color;
+    
+    switch (type.toLowerCase()) {
+      case 'ビール':
+        iconData = Icons.sports_bar;
+        color = Colors.amber[600];
+        break;
+      case '日本酒':
+        iconData = Icons.rice_bowl;
+        color = Colors.grey[300];
+        break;
+      case 'ワイン':
+        iconData = Icons.wine_bar;
+        color = Colors.red[300];
+        break;
+      case '焼酎':
+        iconData = Icons.local_drink;
+        color = Colors.brown[300];
+        break;
+      default:
+        iconData = Icons.local_bar;
+        color = Colors.grey[400];
+    }
+    
+    return Icon(iconData, color: color, size: 28);
   }
 
   Widget _buildBeerIcons(int count) {
@@ -97,7 +172,9 @@ class _MainScreenState extends State<MainScreen> {
               onPressed: () {
                 setState(() {
                   _totalAlcoholGrams = 0.0;
+                  _drinkHistory.clear();
                 });
+                _saveData();
                 Navigator.of(context).pop();
               },
             ),
@@ -120,15 +197,16 @@ class _MainScreenState extends State<MainScreen> {
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
-              _loadDailyLimit(); // Settings画面から戻ってきたら目標値を再読み込み
+              _loadData(); // Settings画面から戻ってきたら全データを再読み込み
             },
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
             Text(
               '今日の飲酒量',
               style: TextStyle(
@@ -226,8 +304,46 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ],
-          ],
-        ),
+            if (_drinkHistory.isNotEmpty) ...[
+              const Divider(),
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  '今日飲んだお酒',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              ...List.generate(
+                _drinkHistory.length,
+                (index) => ListTile(
+                  leading: _getIconForDrinkType(_drinkHistory[index].type),
+                  title: Text('${_drinkHistory[index].type} (${_drinkHistory[index].size})'),
+                  subtitle: Text('アルコール量: ${_drinkHistory[index].alcoholGrams.toStringAsFixed(1)}g'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.add_circle),
+                    onPressed: () => _handleRefill(_drinkHistory[index]),
+                    tooltip: 'おかわり',
+                  ),
+                ),
+              ),
+            ],
+              ],
+            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => InputScreen(
+                onRecordSaved: _handleRecordSaved,
+              ),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
