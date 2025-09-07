@@ -185,6 +185,38 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  // 飲酒履歴をグループ化して表示用のウィジェットリストを生成
+  List<Widget> _buildGroupedDrinkHistory() {
+    // 同じ種類とサイズの飲み物をグループ化
+    final groupedDrinks = <String, List<DrinkRecord>>{};
+    for (var drink in _drinkHistory.reversed) {
+      final key = '${drink.type}:${drink.size}';
+      groupedDrinks.putIfAbsent(key, () => []).add(drink);
+    }
+
+    return groupedDrinks.entries.map((entry) {
+      final drinks = entry.value;
+      final count = drinks.length;
+      final totalAlcoholGrams = drinks.fold<double>(
+        0,
+        (sum, drink) => sum + drink.alcoholGrams,
+      );
+
+      return ListTile(
+        leading: _getIconForDrinkType(drinks.first.type),
+        title: Text(
+          '${drinks.first.type} (${drinks.first.size}) ${count > 1 ? '$count杯' : ''}',
+        ),
+        subtitle: Text('アルコール量: ${totalAlcoholGrams.toStringAsFixed(1)}g'),
+        trailing: IconButton(
+          icon: const Icon(Icons.add_circle),
+          onPressed: () => _handleRefill(drinks.first),
+          tooltip: 'おかわり',
+        ),
+      );
+    }).toList();
+  }
+
   // リセット確認ダイアログを表示
   Future<void> _showResetConfirmDialog() async {
     return showDialog<void>(
@@ -385,12 +417,14 @@ class _MainScreenState extends State<MainScreen> {
             if (_totalAlcoholGrams > 0) ...[
               const SizedBox(height: 8),
               _buildBeerIcons(_calculateBeerCount(_totalAlcoholGrams)),
-              Text(
-                '中ジョッキ${_calculateBeerCount(_totalAlcoholGrams)}杯分',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.amber[800],
+              Center(
+                child: Text(
+                  'ビール中ジョッキ${_calculateBeerCount(_totalAlcoholGrams)}杯分',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber[800],
+                  ),
                 ),
               ),
             ],
@@ -420,23 +454,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ),
               ),
-              ...List.generate(
-                _drinkHistory.length,
-                (index) {
-                  // リストを逆順にアクセス
-                  final reverseIndex = _drinkHistory.length - 1 - index;
-                  return ListTile(
-                    leading: _getIconForDrinkType(_drinkHistory[reverseIndex].type),
-                    title: Text('${_drinkHistory[reverseIndex].type} (${_drinkHistory[reverseIndex].size})'),
-                    subtitle: Text('アルコール量: ${_drinkHistory[reverseIndex].alcoholGrams.toStringAsFixed(1)}g'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.add_circle),
-                      onPressed: () => _handleRefill(_drinkHistory[reverseIndex]),
-                      tooltip: 'おかわり',
-                    ),
-                  );
-                },
-              ),
+              ..._buildGroupedDrinkHistory(),
             ],
             if (_totalAlcoholGrams > 0) ...[
               const SizedBox(height: 32),
