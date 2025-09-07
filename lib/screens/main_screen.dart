@@ -12,6 +12,42 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
+// 三角形のマーカーを描画するカスタムペインター
+class TriangleMarkerPainter extends CustomPainter {
+  final Color color;
+
+  TriangleMarkerPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 2.0
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path()
+      ..moveTo(size.width / 2, size.height)  // 頂点を下に
+      ..lineTo(0, 0)                         // 左上に線を引く
+      ..lineTo(size.width, 0)                // 右上に線を引く
+      ..close();
+
+    // 影を描画
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawPath(path, shadowPaint);
+
+    // メインの三角形を描画
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(TriangleMarkerPainter oldDelegate) {
+    return oldDelegate.color != color;
+  }
+}
+
 class _MainScreenState extends State<MainScreen> {
   double _totalAlcoholGrams = 0.0;
   double? _dailyLimit;
@@ -245,41 +281,66 @@ class _MainScreenState extends State<MainScreen> {
                             // 現在値の相対位置を計算
                             final currentPosition = (_totalAlcoholGrams / maxValue).clamp(0.0, 1.0);
 
-                            return Stack(
-                              children: [
-                                // 背景
-                                Container(
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                ),
-                                // 進捗バー
-                                FractionallySizedBox(
-                                  widthFactor: currentPosition,
-                                  child: Container(
-                                    height: 10,
-                                    decoration: BoxDecoration(
-                                      color: isOverLimit ? Colors.red[_getWarningLevel()] : Colors.green,
-                                      borderRadius: BorderRadius.circular(5),
+                            return Container(
+                              height: 24, // マーカーのスペースを確保
+                              child: Stack(
+                                children: [
+                                  // プログレスバー（下部に配置）
+                                  Positioned(
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Container(
+                                      height: 12,
+                                      child: Stack(
+                                        children: [
+                                          // 背景
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[200],
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                          ),
+                                          // 進捗バー
+                                          FractionallySizedBox(
+                                            widthFactor: currentPosition,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: isOverLimit ? Colors.red[_getWarningLevel()] : Colors.green,
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                                // 目標値のマーカー
-                                Positioned(
-                                  left: constraints.maxWidth * targetPosition - 1,
-                                  top: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    width: 2,
-                                    decoration: BoxDecoration(
-                                      color: Colors.black54,
-                                      borderRadius: BorderRadius.circular(1),
+                                  // 目標値のマーカー（三角形）
+                                  if (targetPosition < 1.0) // 目標値が表示範囲内の場合のみ表示
+                                    Positioned(
+                                      left: constraints.maxWidth * targetPosition - 10,
+                                      top: 0,
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            width: 20,
+                                            height: 12,
+                                            child: CustomPaint(
+                                              painter: TriangleMarkerPainter(
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 2,
+                                            height: 12,
+                                            color: Colors.black87,
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             );
                           },
                         ),
