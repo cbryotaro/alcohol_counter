@@ -122,30 +122,18 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildBeerIcons(int count) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ...List.generate(
-          count > 10 ? 10 : count,
-          (index) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Icon(
-              Icons.sports_bar,
-              color: Colors.amber[600],
-              size: 32,
-            ),
-          ),
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8, // アイコン間の水平スペース
+      runSpacing: 8, // 行間のスペース
+      children: List.generate(
+        count,
+        (index) => Icon(
+          Icons.sports_bar,
+          color: Colors.amber[600],
+          size: 32,
         ),
-        if (count > 10)
-          Text(
-            '+${count - 10}',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.amber[600],
-            ),
-          ),
-      ],
+      ),
     );
   }
 
