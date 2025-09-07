@@ -264,6 +264,54 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24), // 下部に十分なパディングを設定
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InputScreen(
+                    onRecordSaved: _handleRecordSaved,
+                  ),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add, size: 24),
+                SizedBox(width: 8),
+                Text('飲酒を記録する'),
+              ],
+            ),
+          ),
+        ),
+      ),
       appBar: AppBar(
         title: const Text('飲酒カウンター'),
         actions: [
@@ -437,44 +485,8 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity, // ボタンを画面幅いっぱいに
-              height: 56, // 高さを十分に確保
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => InputScreen(
-                        onRecordSaved: _handleRecordSaved,
-                      ),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // 背景色を青に
-                  foregroundColor: Colors.white, // テキストを白に
-                  textStyle: const TextStyle(
-                    fontSize: 18, // フォントサイズを大きく
-                    fontWeight: FontWeight.bold, // 太字に
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12), // 角を丸く
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, size: 24), // アイコンを追加
-                    SizedBox(width: 8), // アイコンとテキストの間隔
-                    Text('飲酒を記録する'),
-                  ],
-                ),
-              ),
-            ),
+            const SizedBox(height: 20),
             if (_drinkHistory.isNotEmpty) ...[
-              const SizedBox(height: 32),
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
