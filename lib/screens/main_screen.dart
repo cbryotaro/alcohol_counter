@@ -35,11 +35,15 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  int _calculateBeerEquivalent(double alcoholGrams) {
+  double _calculateBeerEquivalent(double alcoholGrams) {
     // 中ジョッキ（500ml, 5%）のビールを基準に換算
     // 中ジョッキ1杯のアルコール量 = 500 * 0.05 * 0.8 = 20g
     const beerAlcoholGrams = 20.0;
-    return (alcoholGrams / beerAlcoholGrams).round();
+    return alcoholGrams / beerAlcoholGrams;
+  }
+
+  int _calculateBeerCount(double alcoholGrams) {
+    return _calculateBeerEquivalent(alcoholGrams).round();
   }
 
   Widget _buildBeerIcons(int count) {
@@ -111,11 +115,12 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
+              _loadDailyLimit(); // Settings画面から戻ってきたら目標値を再読み込み
             },
           ),
         ],
@@ -149,13 +154,13 @@ class _MainScreenState extends State<MainScreen> {
                       children: [
                         LinearProgressIndicator(
                           value: _dailyLimit != null && _dailyLimit! > 0
-                              ? (_totalAlcoholGrams / 20.0) / _dailyLimit!
+                              ? _totalAlcoholGrams / (_dailyLimit! * 20.0)
                               : 0.0,
                           minHeight: 10,
                           backgroundColor: Colors.grey[200],
                           valueColor: AlwaysStoppedAnimation<Color>(
                             _dailyLimit != null &&
-                                    (_totalAlcoholGrams / 20.0) >= _dailyLimit!
+                                    _totalAlcoholGrams >= (_dailyLimit! * 20.0)
                                 ? Colors.red
                                 : Colors.green,
                           ),
@@ -165,14 +170,14 @@ class _MainScreenState extends State<MainScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '${(_totalAlcoholGrams / 20.0).toStringAsFixed(1)}単位',
+                              '${(_totalAlcoholGrams / 20.0).toStringAsFixed(1)}杯',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 12,
                               ),
                             ),
                             Text(
-                              '目標: ${_dailyLimit?.toStringAsFixed(1) ?? '2.0'}単位',
+                              '目標: ${_dailyLimit?.toStringAsFixed(1) ?? '2.0'}杯',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 12,
@@ -186,9 +191,9 @@ class _MainScreenState extends State<MainScreen> {
             const SizedBox(height: 24),
             if (_totalAlcoholGrams > 0) ...[
               const SizedBox(height: 8),
-              _buildBeerIcons(_calculateBeerEquivalent(_totalAlcoholGrams)),
+              _buildBeerIcons(_calculateBeerCount(_totalAlcoholGrams)),
               Text(
-                '中ジョッキ${_calculateBeerEquivalent(_totalAlcoholGrams)}杯分',
+                '中ジョッキ${_calculateBeerCount(_totalAlcoholGrams)}杯分',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

@@ -81,21 +81,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
           ListTile(
-            title: const Text('1日のアルコール単位制限'),
-            subtitle: Slider(
-              value: _dailyLimit,
-              min: 0,
-              max: 100,
-              divisions: 10,
-              label: _dailyLimit.toString(),
-              onChanged: (value) {
-                setState(() {
-                  _dailyLimit = value;
-                });
-                _saveSettings();
-              },
+            title: const Text('1日の目標'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Slider(
+                  value: _dailyLimit,
+                  min: 0,
+                  max: 10,
+                  divisions: 20,
+                  label: '${_dailyLimit.toStringAsFixed(1)}杯',
+                  onChanged: (value) {
+                    setState(() {
+                      _dailyLimit = value;
+                    });
+                    _saveSettings();
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    '中ジョッキ ${_dailyLimit.toStringAsFixed(1)}杯まで',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    '(アルコール量: 約${(_dailyLimit * 20).toStringAsFixed(1)}g)',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            trailing: Text('${_dailyLimit.toStringAsFixed(1)}単位'),
           ),
           const Divider(),
           ListTile(

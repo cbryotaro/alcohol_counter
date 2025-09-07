@@ -71,6 +71,10 @@ app.*.map.json
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
 **/ios/Podfile.lock
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Release.xcconfig
+ios/Runner.xcodeproj/project.pbxproj
+ios/Runner.xcworkspace/contents.xcworkspacedata
 
 # macOS related
 **/macos/Pods/
@@ -79,3 +83,5 @@ app.*.map.json
 **/macos/**/.DS_Store
 **/macos/**/.AppleDouble
 **/macos/**/.LSOverride
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
