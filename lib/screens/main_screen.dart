@@ -208,10 +208,19 @@ class _MainScreenState extends State<MainScreen> {
           '${drinks.first.type} (${drinks.first.size}) ${count > 1 ? '$count杯' : ''}',
         ),
         subtitle: Text('アルコール量: ${totalAlcoholGrams.toStringAsFixed(1)}g'),
-        trailing: IconButton(
-          icon: const Icon(Icons.add_circle),
-          onPressed: () => _handleRefill(drinks.first),
-          tooltip: 'おかわり',
+        trailing: Container(
+          width: 56, // ListTileの標準的な高さに合わせる
+          height: 56,
+          child: IconButton(
+            icon: const Icon(
+              Icons.add_circle,
+              size: 40, // アイコンサイズをさらに大きく
+              color: Colors.blue, // 視認性を高めるために色も調整
+            ),
+            padding: EdgeInsets.zero, // パディングを削除してボタン全体を使用
+            onPressed: () => _handleRefill(drinks.first),
+            tooltip: 'おかわり',
+          ),
         ),
       );
     }).toList();
@@ -429,18 +438,40 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ],
             const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => InputScreen(
-                      onRecordSaved: _handleRecordSaved,
+            SizedBox(
+              width: double.infinity, // ボタンを画面幅いっぱいに
+              height: 56, // 高さを十分に確保
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InputScreen(
+                        onRecordSaved: _handleRecordSaved,
+                      ),
                     ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // 背景色を青に
+                  foregroundColor: Colors.white, // テキストを白に
+                  textStyle: const TextStyle(
+                    fontSize: 18, // フォントサイズを大きく
+                    fontWeight: FontWeight.bold, // 太字に
                   ),
-                );
-              },
-              child: const Text('飲酒を記録する'),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12), // 角を丸く
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add, size: 24), // アイコンを追加
+                    SizedBox(width: 8), // アイコンとテキストの間隔
+                    Text('飲酒を記録する'),
+                  ],
+                ),
+              ),
             ),
             if (_drinkHistory.isNotEmpty) ...[
               const SizedBox(height: 32),
@@ -473,19 +504,6 @@ class _MainScreenState extends State<MainScreen> {
             ],
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => InputScreen(
-                onRecordSaved: _handleRecordSaved,
-              ),
-            ),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }
