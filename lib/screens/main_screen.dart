@@ -282,19 +282,8 @@ class _MainScreenState extends State<MainScreen> {
               },
               child: const Text('飲酒を記録する'),
             ),
-            if (_totalAlcoholGrams > 0) ...[
-              const SizedBox(height: 16),
-              TextButton.icon(
-                onPressed: _showResetConfirmDialog,
-                icon: const Icon(Icons.refresh, color: Colors.red),
-                label: const Text(
-                  '記録をリセット',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
             if (_drinkHistory.isNotEmpty) ...[
-              const Divider(),
+              const SizedBox(height: 32),
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
@@ -322,6 +311,21 @@ class _MainScreenState extends State<MainScreen> {
                   );
                 },
               ),
+            ],
+            if (_totalAlcoholGrams > 0) ...[
+              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _showResetConfirmDialog,
+                  icon: const Icon(Icons.refresh, color: Colors.red),
+                  label: const Text(
+                    '記録をリセット',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
               ],
             ),
