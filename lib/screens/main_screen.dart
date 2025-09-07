@@ -92,6 +92,17 @@ class _MainScreenState extends State<MainScreen> {
     return _calculateBeerEquivalent(alcoholGrams).round();
   }
 
+  // 目標値を超えた量に応じて警告レベルを返す
+  int _getWarningLevel() {
+    if (_dailyLimit == null || _dailyLimit! <= 0) return 400;
+    
+    final ratio = _totalAlcoholGrams / (_dailyLimit! * 20.0);
+    if (ratio >= 2.0) return 900; // 目標の2倍以上
+    if (ratio >= 1.5) return 700; // 目標の1.5倍以上
+    if (ratio >= 1.2) return 500; // 目標の1.2倍以上
+    return 400; // 目標を超えた程度
+  }
+
   Widget _getIconForDrinkType(String type) {
     String imagePath;
     switch (type) {
@@ -219,37 +230,91 @@ class _MainScreenState extends State<MainScreen> {
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        LinearProgressIndicator(
-                          value: _dailyLimit != null && _dailyLimit! > 0
-                              ? _totalAlcoholGrams / (_dailyLimit! * 20.0)
-                              : 0.0,
-                          minHeight: 10,
-                          backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            _dailyLimit != null &&
-                                    _totalAlcoholGrams >= (_dailyLimit! * 20.0)
-                                ? Colors.red
-                                : Colors.green,
-                          ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            if (_dailyLimit == null || _dailyLimit! <= 0) {
+                              return const SizedBox.shrink();
+                            }
+
+                            final targetGrams = _dailyLimit! * 20.0;
+                            final isOverLimit = _totalAlcoholGrams > targetGrams;
+                            final maxValue = isOverLimit ? _totalAlcoholGrams : targetGrams;
+                            
+                            // 目標値のマーカーの相対位置を計算
+                            final targetPosition = (targetGrams / maxValue).clamp(0.0, 1.0);
+                            // 現在値の相対位置を計算
+                            final currentPosition = (_totalAlcoholGrams / maxValue).clamp(0.0, 1.0);
+
+                            return Stack(
+                              children: [
+                                // 背景
+                                Container(
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                ),
+                                // 進捗バー
+                                FractionallySizedBox(
+                                  widthFactor: currentPosition,
+                                  child: Container(
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: isOverLimit ? Colors.red[_getWarningLevel()] : Colors.green,
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                  ),
+                                ),
+                                // 目標値のマーカー
+                                Positioned(
+                                  left: constraints.maxWidth * targetPosition - 1,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 2,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(1),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '${(_totalAlcoholGrams / 20.0).toStringAsFixed(1)}杯',
+                              '現在: ${(_totalAlcoholGrams / 20.0).toStringAsFixed(1)}杯',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: _dailyLimit != null &&
+                                        _totalAlcoholGrams >= (_dailyLimit! * 20.0)
+                                    ? Colors.red[_getWarningLevel()]
+                                    : Colors.grey[600],
                                 fontSize: 12,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text(
-                              '目標: ${_dailyLimit?.toStringAsFixed(1) ?? '2.0'}杯',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
+                            if (_dailyLimit != null && _totalAlcoholGrams > (_dailyLimit! * 20.0))
+                              Text(
+                                '目標の${(_totalAlcoholGrams / (_dailyLimit! * 20.0)).toStringAsFixed(1)}倍を摂取',
+                                style: TextStyle(
+                                  color: Colors.red[_getWarningLevel()],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            else
+                              Text(
+                                '目標: ${_dailyLimit?.toStringAsFixed(1) ?? '2.0'}杯',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ],
