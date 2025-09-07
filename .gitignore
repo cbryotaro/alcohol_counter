@@ -83,5 +83,12 @@ ios/Runner.xcworkspace/contents.xcworkspacedata
 **/macos/**/.DS_Store
 **/macos/**/.AppleDouble
 **/macos/**/.LSOverride
-macos/Flutter/Flutter-Debug.xcconfig
-macos/Flutter/Flutter-Release.xcconfig
+**/macos/Flutter/Flutter-Debug.xcconfig
+**/macos/Flutter/Flutter-Release.xcconfig
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/GeneratedPluginRegistrant.*
+**/macos/**/xcuserdata/
+**/macos/**/*.xcworkspace/xcshareddata/
+**/macos/**/*.xcodeproj/xcshareddata/
+**/macos/**/*.xcodeproj/project.xcworkspace/
+**/macos/**/DerivedData/
